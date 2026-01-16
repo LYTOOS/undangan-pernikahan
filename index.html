@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Undangan Pernikahan Charly & Pasangan</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Poppins&display=swap" rel="stylesheet">
+
+<style>
+body{margin:0;font-family:Poppins;background:#f8f6f1;color:#333}
+.section{text-align:center;padding:40px 20px}
+.cover{
+height:100vh;
+background:linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,.55)),
+url('foto/cover.jpg') center/cover;
+color:#fff;display:flex;flex-direction:column;justify-content:center
+}
+h1,h2{font-family:'Playfair Display',serif}
+.button{background:#c7a14a;color:#fff;padding:12px 32px;border-radius:30px;text-decoration:none}
+.card{background:#fff;max-width:420px;margin:20px auto;padding:25px;border-radius:18px;border:2px solid #c7a14a}
+.songket{border-top:8px solid #c7a14a}
+.gallery{display:flex;flex-wrap:wrap;justify-content:center}
+.gallery img{width:45%;margin:6px;border-radius:15px}
+.countdown span{display:inline-block;margin:5px;padding:10px 15px;background:#c7a14a;color:#fff;border-radius:10px}
+.fade{animation:fade 1.5s}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+audio{position:fixed;bottom:12px;right:12px}
+.admin{color:red;cursor:pointer;font-size:12px}
+</style>
+</head>
+
+<body>
+
+<audio id="music" loop>
+  <source src="musik/lagu.mp3" type="audio/mpeg">
+</audio>
+
+<div class="cover section fade">
+  <h2>Undangan Pernikahan</h2>
+  <h1>Charly Handani S.I.Kom<br>&<br>Fitriani S.P.d</h1>
+  <p>Minggu, 15 Februari 2026</p>
+  <a href="#mempelai" class="button" onclick="document.getElementById('music').play()">Buka Undangan</a>
+</div>
+
+<div id="mempelai" class="section songket fade">
+  <h2>Mempelai</h2>
+  <p><b>Charly Handani S.I.Kom</b><br>Putra dari Bapak Zaili & Ibu Erni Wati</p>
+  <p><b>Fitriani S.P.d</b><br>Putri dari Bapak Pian & Ibu Yeni</p>
+</div>
+
+<div class="section fade">
+  <h2>Countdown Menuju Hari Bahagia</h2>
+  <div class="countdown" id="countdown"></div>
+</div>
+
+<div class="section fade">
+  <h2>Acara Pernikahan</h2>
+  <div class="card">
+    <b>Akad Nikah</b>
+    <p>Minggu, 15 Februari 2026<br>09.00 WIB</p>
+  </div>
+  <div class="card">
+    <b>Resepsi</b>
+    <p>08.00 WIB – Selesai</p>
+  </div>
+</div>
+
+<div class="section songket fade">
+  <h2>Galeri Foto</h2>
+  <div class="gallery">
+    <img src="foto/1.jpg">
+    <img src="foto/2.jpg">
+    <img src="foto/3.jpg">
+    <img src="foto/4.jpg">
+  </div>
+</div>
+
+<div class="section fade">
+  <h2>Ucapan & Doa</h2>
+  <div class="card">
+    <input id="nama" placeholder="Nama Anda" style="width:100%;padding:10px;margin-bottom:10px">
+    <textarea id="pesan" placeholder="Ucapan" style="width:100%;padding:10px;height:80px"></textarea>
+    <button class="button" onclick="kirimUcapan()">Kirim</button>
+  </div>
+  <div id="daftarUcapan"></div>
+</div>
+
+<div class="section fade">
+  <a id="shareWA" class="button" target="_blank">Bagikan via WhatsApp</a>
+</div>
+
+<footer class="section fade">
+  Terima kasih atas doa & restu Anda 🤍
+</footer>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCAxuBGwkoHDJfPYqfr2Ho_g0pc0i-rDDU",
+  authDomain: "undangan-charlyfitriani.firebaseapp.com",
+  projectId: "undangan-charlyfitriani",
+  storageBucket: "undangan-charlyfitriani.firebasestorage.app",
+  messagingSenderId: "942759943601",
+  appId: "1:942759943601:web:90d6c46464656d84a5f190"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// AUTO NAMA
+const p=new URLSearchParams(location.search);
+const to=p.get("to");
+if(to) document.getElementById("nama").value=decodeURIComponent(to);
+
+// SHARE WA
+document.getElementById("shareWA").href=
+`https://wa.me/?text=Undangan%20Pernikahan%20Charly%20%26%20Pasangan%0A${location.origin}${location.pathname}?to=${encodeURIComponent(to||'Nama Anda')}`;
+
+// COUNTDOWN
+const target=new Date("2026-04-20").getTime();
+setInterval(()=>{
+const now=new Date().getTime(),d=target-now;
+if(d<0)return;
+document.getElementById("countdown").innerHTML=
+`<span>${Math.floor(d/86400000)} Hari</span>
+<span>${Math.floor(d%86400000/3600000)} Jam</span>
+<span>${Math.floor(d%3600000/60000)} Menit</span>`;
+},1000);
+
+// ADMIN MODE
+const admin=location.hash==="#admin";
+
+// ANTI SPAM
+function boleh(){const l=localStorage.getItem("lastSend");return !l||Date.now()-l>300000}
+
+function kirimUcapan(){
+if(!boleh()) return alert("Tunggu 5 menit 🙏");
+const nama=document.getElementById("nama").value;
+const pesan=document.getElementById("pesan").value;
+if(!nama||!pesan) return alert("Lengkapi data");
+
+db.collection("ucapan").add({nama,pesan,waktu:new Date()});
+localStorage.setItem("lastSend",Date.now());
+document.getElementById("pesan").value="";
+}
+</script>
+
+</body>
+</html>
